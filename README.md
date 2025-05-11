@@ -4,7 +4,12 @@
 ![平台](https://img.shields.io/badge/平台-macOS-lightgrey)
 ![语言](https://img.shields.io/badge/语言-Bash-green)
 
-DisplayPlacerAI 是一个智能显示器布局管理脚本，专为 macOS 用户设计，特别适用于使用多显示器设置的用户。它能够自动检测当前显示器状态，并根据预设配置应用最佳布局，解决了多显示器连接时常见的布局混乱问题。
+DisplayPlacerAI 是我自己用的显示器布局管理脚本，macOS 。
+它能够自动检测当前显示器状态，并根据预设配置应用最佳布局，解决了多显示器连接时常见的布局混乱问题，对我来说是雷电⚡4hub，插入之后显示器会混乱，每次都要重新调整显示器的旋转和位置。
+
+## 屏幕截图
+
+![DisplayPlacerAI 屏幕截图](screenCapture.jpg)
 
 ## 使用场景
 
@@ -61,7 +66,7 @@ displayplacer list
 1. 下载 DisplayPlacerAI 脚本：
 
 ```bash
-curl -o displayPlacerAI.sh https://raw.githubusercontent.com/YourUsername/DisplayPlacerAI/main/displayPlacerAI.sh
+curl -o displayPlacerAI.sh https://raw.githubusercontent.com/JoeFirmament/displayPlacer/main/displayPlacerAI.sh
 ```
 
 2. 赋予脚本执行权限：
@@ -141,10 +146,6 @@ CONFIG_CONTEXTUAL_3="res:${ROTATED_RESOLUTION} hz:60 color_depth:8 enabled:true 
    - 检查显示器的物理排列是否与系统中的排列一致
    - 调整脚本中的坐标配置
 
-## 贡献
-
-欢迎提交问题报告、功能请求或代码贡献！
-
 ## 许可证
 
 本项目采用 MIT 许可证 - 详情请参阅 [LICENSE](LICENSE) 文件。
@@ -152,4 +153,3 @@ CONFIG_CONTEXTUAL_3="res:${ROTATED_RESOLUTION} hz:60 color_depth:8 enabled:true 
 ## 致谢
 
 - [jakehilborn/displayplacer](https://github.com/jakehilborn/displayplacer) - 提供了底层的显示器配置工具
-- 所有测试和提供反馈的用户
