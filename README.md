@@ -1,11 +1,12 @@
-# DisplayPlacerAI - 智能显示器布局管理脚本
+# DisplayPlacerAI - 我自己用的显示器布局管理脚本
 
 ![版本](https://img.shields.io/badge/版本-1.0.0-blue)
 ![平台](https://img.shields.io/badge/平台-macOS-lightgrey)
 ![语言](https://img.shields.io/badge/语言-Bash-green)
 
 DisplayPlacerAI 是我自己用的显示器布局管理脚本，macOS 。
-它能够自动检测当前显示器状态，并根据预设配置应用最佳布局，解决了多显示器连接时常见的布局混乱问题，对我来说是雷电⚡4hub，插入之后显示器会混乱，每次都要重新调整显示器的旋转和位置。
+它能够自动检测当前显示器状态，并根据预设配置应用最佳布局，解决了多显示器连接时常见的布局混乱问题。
+对我来说：解决雷电⚡4hub，插入之后显示器会混乱，每次都要重新调整显示器的旋转和位置。
 
 ## 屏幕截图
 
