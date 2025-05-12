@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>显示器布局可视化</title>
+    <style>
+        body {
+            font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .display-area {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            background-color: #f5f5f5;
+            overflow: visible; /* 允许显示器超出边界，确保完整显示 */
+        }
+        .display {
+            position: absolute;
+            border: 2px solid #333;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .display.internal {
+            background-color: rgba(0, 123, 255, 0.2);
+            border-color: #007bff;
+        }
+
+        .display.external {
+            background-color: rgba(40, 167, 69, 0.2);
+            border-color: #28a745;
+        }
+
+        .display-label {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .display-info {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px;
+            border-radius: 3px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .display:hover .display-info {
+            display: block;
+        }
+        /* 内置屏幕 */
+        .display[data-id="1"] {
+            border-color: #4CAF50;
+            background-color: rgba(76, 175, 80, 0.1);
+            z-index: 3; /* 确保内置屏幕在最上层 */
+        }
+        /* 左侧外部屏幕 */
+        .display[data-id="2"] {
+            border-color: #2196F3;
+            background-color: rgba(33, 150, 243, 0.1);
+            z-index: 2;
+        }
+        /* 右侧外部屏幕 */
+        .display[data-id="3"] {
+            border-color: #FF9800;
+            background-color: rgba(255, 152, 0, 0.1);
+            z-index: 2;
+        }
+        /* 移除显示器伪元素标签 */
+        .display-info {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            font-size: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 2px 5px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+            color: #666;
+            font-family: monospace;
+        }
+        .display-name {
+            font-weight: bold;
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 12px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 2px 5px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+        }
+        /* 坐标系说明 */
+        .coordinate-info {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #333;
+            border: 1px solid #ccc;
+        }
+
+        /* 角标记样式已移除 */
+
+        /* 移除重复的样式 */
+        .origin-marker {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            border-radius: 50%;
+        }
+        .legend {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .info-panel {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e8f4f8;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>显示器布局可视化</h1>
+
+        <div class="info-panel">
+            <p>此工具可视化显示您当前的显示器布局配置。红点表示坐标系统的原点(0,0)，对应于主显示器的左上角。</p>
+            <p>显示器的大小和位置按照实际分辨率和坐标进行等比例缩放。</p>
+        </div>
+
+        <div class="controls">
+            <button id="load-config">加载当前配置</button>
+            <button id="toggle-labels">显示/隐藏标签</button>
+            <button id="reset-view">重置视图</button>
+        </div>
+
+        <div class="display-area">
+            <div class="origin-marker" title="原点 (0,0)"></div>
+            <!-- 显示器将在这里动态添加 -->
+        </div>
+
+        <div class="legend">
+            <h3>图例</h3>
+            <p><span style="color: red;">●</span> 原点 (0,0) - 主显示器左上角</p>
+            <p>内置屏幕 - 通常为主显示器</p>
+            <p>外部屏幕 - 连接的外部显示器</p>
+            <p>显示器尺寸按实际分辨率等比例缩放</p>
+        </div>
+    </div>
+
+    <script>
+        // 示例配置 - 实际使用时会从脚本中获取
+        const displayConfig = {
+            internal: {
+                id: 1,
+                name: "内置屏幕",
+                resolution: { width: 1710, height: 1112 },
+                origin: { x: 0, y: 0 },
+                rotation: 0
+            },
+            external1: {
+                id: 2,
+                name: "外部屏幕 1 (左侧)",
+                resolution: { width: 2560, height: 1440 },
+                origin: { x: -2560, y: -328 },
+                rotation: 0
+            },
+            external2: {
+                id: 3,
+                name: "外部屏幕 2 (右侧)",
+                resolution: { width: 2560, height: 1440 }, // 原始分辨率
+                origin: { x: 1710, y: -900 },
+                rotation: 90
+            }
+        };
+
+        // 缩放因子，用于将实际分辨率缩放到显示区域
+        let scaleFactor = 0.2;
+
+        // 找出所有显示器的边界
+        function findDisplayBounds(config) {
+            let minX = Infinity, minY = Infinity;
+            let maxX = -Infinity, maxY = -Infinity;
+
+            Object.values(config).forEach(display => {
+                const { width, height } = display.resolution;
+                const { x, y } = display.origin;
+
+                // 根据显示器的旋转状态计算边界
+                if (display.rotation === 0 || display.rotation === 180) {
+                    // 不旋转或旋转180度
+                    minX = Math.min(minX, x);
+                    minY = Math.min(minY, y);
+                    maxX = Math.max(maxX, x + width);
+                    maxY = Math.max(maxY, y + height);
+                } else if (display.rotation === 90) {
+                    // 旋转90度
+                    minX = Math.min(minX, x);
+                    minY = Math.min(minY, y - height); // 考虑旋转后的高度
+                    maxX = Math.max(maxX, x + height);
+                    maxY = Math.max(maxY, y);
+                } else if (display.rotation === 270) {
+                    // 旋转270度
+                    minX = Math.min(minX, x - width);
+                    minY = Math.min(minY, y);
+                    maxX = Math.max(maxX, x);
+                    maxY = Math.max(maxY, y + width);
+                }
+            });
+
+            return { minX, minY, maxX, maxY };
+        }
+
+        // 计算适当的缩放因子
+        function calculateScaleFactor(bounds, containerWidth, containerHeight) {
+            const width = bounds.maxX - bounds.minX;
+            const height = bounds.maxY - bounds.minY;
+
+            // 添加边距
+            const padding = 50;
+            const availableWidth = containerWidth - padding * 2;
+            const availableHeight = containerHeight - padding * 2;
+
+            // 计算缩放比例
+            const scaleX = availableWidth / width;
+            const scaleY = availableHeight / height;
+
+            // 使用较小的缩放比例，并留出更多空间
+            return Math.min(scaleX, scaleY) * 0.85;
+        }
+
+        // 渲染显示器
+        function renderDisplays(config) {
+            const displayArea = document.querySelector('.display-area');
+            displayArea.innerHTML = `
+                <div class="origin-marker" title="原点 (0,0)"></div>
+                <div class="coordinate-info">
+                    <strong>坐标系说明:</strong> 原点(0,0)位于主显示器左上角，X轴向右为正，Y轴向下为正
+                </div>
+            `;
+
+            // 计算所有显示器的边界
+            const bounds = findDisplayBounds(config);
+            const containerWidth = displayArea.clientWidth;
+            const containerHeight = displayArea.clientHeight;
+
+            // 计算适当的缩放因子
+            scaleFactor = calculateScaleFactor(bounds, containerWidth, containerHeight);
+
+            // 计算原点在容器中的位置
+            const originX = Math.abs(bounds.minX) * scaleFactor + 20;
+            const originY = Math.abs(bounds.minY) * scaleFactor + 20;
+
+            // 设置原点位置
+            const originMarker = document.querySelector('.origin-marker');
+            originMarker.style.left = `${originX}px`;
+            originMarker.style.top = `${originY}px`;
+
+            // 渲染每个显示器
+            Object.values(config).forEach(display => {
+                const { width, height } = display.resolution;
+                const { x, y } = display.origin;
+
+                const displayElement = document.createElement('div');
+                displayElement.className = 'display';
+                displayElement.setAttribute('data-id', display.id);
+                displayElement.setAttribute('data-name', display.name);
+
+                // 计算基础位置
+                let leftPx = originX + x * scaleFactor;
+                let topPx = originY + y * scaleFactor;
+
+                // 设置未旋转时的尺寸
+                let displayWidth = width * scaleFactor;
+                let displayHeight = height * scaleFactor;
+
+                // 处理旋转
+                if (display.rotation !== 0) {
+                    // 保存原始尺寸
+                    const originalWidth = width;
+                    const originalHeight = height;
+
+                    if (display.rotation === 90) {
+                        // 90度旋转 - 顺时针
+                        // 对于90度旋转，宽高交换
+                        displayWidth = originalHeight * scaleFactor;
+                        displayHeight = originalWidth * scaleFactor;
+
+                        // 对于90度旋转，需要调整位置
+                        // 在macOS坐标系中，旋转90度后，原点仍然是左上角
+                        // 但在我们的可视化中，需要调整位置以保持正确的显示
+                        // 不需要调整位置
+                    } else if (display.rotation === 180) {
+                        // 180度旋转
+                        displayWidth = originalWidth * scaleFactor;
+                        displayHeight = originalHeight * scaleFactor;
+                        // 对于180度旋转，不需要调整位置
+                    } else if (display.rotation === 270) {
+                        // 270度旋转 - 逆时针
+                        // 对于270度旋转，宽高交换
+                        displayWidth = originalHeight * scaleFactor;
+                        displayHeight = originalWidth * scaleFactor;
+
+                        // 对于270度旋转，需要调整位置
+                        // 在macOS坐标系中，旋转270度后，原点变为右上角
+                        // 但在我们的可视化中，需要调整位置以保持正确的显示
+                        // 不需要调整位置
+                    }
+                }
+
+                // 特殊处理ID为3的显示器（右侧旋转的显示器）
+                if (display.id === 3 && display.rotation === 90) {
+                    // 根据截图中的实际情况调整位置
+                    // 这是一个特殊处理，确保显示器3正确显示
+                    leftPx = originX + x * scaleFactor;
+                    topPx = originY + y * scaleFactor;
+
+                    // 使用正确的宽高
+                    displayWidth = height * scaleFactor;
+                    displayHeight = width * scaleFactor;
+                }
+
+                // 设置最终位置
+                displayElement.style.width = `${displayWidth}px`;
+                displayElement.style.height = `${displayHeight}px`;
+                displayElement.style.left = `${leftPx}px`;
+                displayElement.style.top = `${topPx}px`;
+
+                // 简化的日志信息
+                console.log(`显示器 ${display.id} (${display.name}) 已渲染`);
+
+                // 调试标记已移除
+
+                // 添加简化的显示器标签
+                const label = document.createElement('div');
+                label.className = 'display-name';
+                label.textContent = display.name;
+                displayElement.appendChild(label);
+
+                // 添加显示器信息
+                const infoElement = document.createElement('div');
+                infoElement.className = 'display-info';
+
+                // 根据旋转状态显示正确的分辨率
+                let displayResolution = `${width}x${height}`;
+                if (display.rotation === 90 || display.rotation === 270) {
+                    displayResolution = `${height}x${width}`;
+                }
+
+                // 合并分辨率和坐标信息
+                infoElement.textContent = `${displayResolution} @ (${x}, ${y})`;
+                displayElement.appendChild(infoElement);
+
+                displayArea.appendChild(displayElement);
+            });
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDisplays(displayConfig);
+
+            // 按钮事件处理
+            document.getElementById('load-config').addEventListener('click', () => {
+                alert('在实际应用中，这里会从脚本中加载最新的配置');
+                // 实际应用中，这里会从脚本中获取最新配置
+                renderDisplays(displayConfig);
+            });
+
+            document.getElementById('toggle-labels').addEventListener('click', () => {
+                const infoElements = document.querySelectorAll('.display-info');
+                infoElements.forEach(el => {
+                    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+                });
+            });
+
+            document.getElementById('reset-view').addEventListener('click', () => {
+                renderDisplays(displayConfig);
+            });
+        });
+    </script>
+</body>
+</html>
